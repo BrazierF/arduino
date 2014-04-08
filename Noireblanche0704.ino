@@ -19,6 +19,7 @@ int compt2 = 0;
 char k =0 ;
 boolean premier =true;
 int nbdenotesrecu = 0;
+int recep;
 
 
 
@@ -35,15 +36,22 @@ void setup() {
 
 
 void loop() { 
-  while(Serial2.available()>0){
+  reception();
+  afficher();
+}
+
+void reception(){
+recep++;
+while(Serial2.available()>0){
     k=Serial2.read();
+    Serial.print(k);//Serial.print(recep);
     switch(k){
       //Fin de gamme : '.'(46)
       //Penser a une fonction d'erreur (renvoie des notes si le nb de notes n'est pas correcte)
-      case 46: Serial.print(nbdenotesrecu); nbdenotesrecu =0 ;return;
+      case 46: Serial.print(nbdenotesrecu);/*miseentampon();*/ nbdenotesrecu =0 ;compt1++;return;
      // Début de la transmission : ':'(58)
-      case 58:nbdenotesrecu =0;
-               raffraichissement = (long) Serial2.read()*100;break;
+      case 58:nbdenotesrecu =0; compt2=0;
+      case 84:raffraichissement = (long) Serial2.read()*100;break;
       ///Arret : '!' (33)
       case 33: arret();return;
       //Pause : '-'(45)
@@ -52,23 +60,29 @@ void loop() {
       case 47 :fin();return;  
       //Play : '>' (62)
       //devra etre effectuer apres l'envoi de la premiere ligne de notes a jouer
-      case 62 : return;
-      default : buffer[nbdenotesrecu];nbdenotesrecu ++ ; break;
+      case 62 : Serial.print("play");miseentampon();afficherdebut();return;
+      default : buffer[nbdenotesrecu+compt1*NBLED]=k;nbdenotesrecu ++ ; break;
     }
   }
-  afficher();
 }
-
 
 void afficher(){ 
   if(millis()-chrono>raffraichissement){
       blanche.show();
       noire.show();
       chrono=millis();
+      Serial.print("afficher");
+      miseentampon();
     }
   }
 
-
+void afficherdebut(){ 
+      blanche.show();
+      noire.show();
+      chrono=millis();
+      Serial.print("afficher");
+      miseentampon();
+  }
 
 uint32_t couleurb(int j){
   switch (j) 
@@ -113,7 +127,8 @@ void arret(){
       noire.show();
 }
 //void play(){}
-void pause(){while(Serial2.read()!=62){}
+void pause(){chrono=millis()-chrono;while(Serial2.read()!=62){}
+chrono=millis()+chrono;
 }
 void fin(){  for(int i=0;i<NBLEDNO;i++){
         blanche.setPixelColor(i,couleurb(0));
@@ -124,18 +139,20 @@ void fin(){  for(int i=0;i<NBLEDNO;i++){
 }
 void miseentampon(){
   int z =0;
+  Serial.print("miseentampon");
    for(int i=0;i<FBLED;i++){
-        if (i%2==1){
-          noire.setPixelColor(i,couleurn(buffer[i-z]));
+       /* if (i%2==1){
+          noire.setPixelColor(i/2+1,couleurn(buffer[i-z+NBLED*compt2]));
         }
-        else{
-          blanche.setPixelColor(i/2+1,couleurb(buffer[i-z]));
-        }
+        else{*/
+        Serial.print(buffer[i-z+NBLED*compt2]);Serial.print('m');
+          blanche.setPixelColor(i/*2+1*/,couleurb(buffer[i-z+NBLED*compt2]));
+        /*}
         if(i == 6||i==14 ||i==20 ||i==28||i==34||i==42){
           z++;
-        }
-        blanche.setPixelColor(i/2+1,couleurb(buffer[i-z]));
+        }*/
       }
+      compt2++;
 }
 
 
