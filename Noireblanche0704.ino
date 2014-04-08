@@ -17,7 +17,7 @@ long raffraichissement = 6000 ;
 int compt1 = 0;
 int compt2 = 0;
 char k =0 ;
-boolean premier =true;
+boolean marche =true;
 int nbdenotesrecu = 0;
 int recep;
 
@@ -44,34 +44,34 @@ void reception(){
 recep++;
 while(Serial2.available()>0){
     k=Serial2.read();
-    Serial.print(k);//Serial.print(recep);
+   // Serial.print(k);//Serial.print(recep);
     switch(k){
       //Fin de gamme : '.'(46)
       //Penser a une fonction d'erreur (renvoie des notes si le nb de notes n'est pas correcte)
-      case 46: Serial.print(nbdenotesrecu);/*miseentampon();*/ nbdenotesrecu =0 ;compt1++;return;
+      case 46: /*Serial.print(nbdenotesrecu);/*miseentampon();*/ nbdenotesrecu =0 ;compt1++;return;
      // Début de la transmission : ':'(58)
-      case 58:nbdenotesrecu =0; compt2=0;
+      case 58:nbdenotesrecu =0; compt2=0;marche=true;
       case 84:raffraichissement = (long) Serial2.read()*100;break;
       ///Arret : '!' (33)
-      case 33: arret();return;
+      case 33: arret();marche=false;return;
       //Pause : '-'(45)
       case 45: pause();return;
       //Fin du morceau : '/'(47)
-      case 47 :fin();return;  
+      case 47 :compt1=0;fin();return;  
       //Play : '>' (62)
       //devra etre effectuer apres l'envoi de la premiere ligne de notes a jouer
-      case 62 : Serial.print("play");miseentampon();afficherdebut();return;
+      case 62 : /*Serial.print("play");*/miseentampon();afficherdebut();return;
       default : buffer[nbdenotesrecu+compt1*NBLED]=k;nbdenotesrecu ++ ; break;
     }
   }
 }
 
 void afficher(){ 
-  if(millis()-chrono>raffraichissement){
+  if(millis()-chrono>3000){
       blanche.show();
       noire.show();
       chrono=millis();
-      Serial.print("afficher");
+      //Serial.print("afficher");
       miseentampon();
     }
   }
@@ -80,8 +80,7 @@ void afficherdebut(){
       blanche.show();
       noire.show();
       chrono=millis();
-      Serial.print("afficher");
-      miseentampon();
+      Serial.print("afficher debut");
   }
 
 uint32_t couleurb(int j){
@@ -125,6 +124,7 @@ void arret(){
    blanche.setPixelColor(i,couleurb(0));}
       blanche.show();
       noire.show();
+      marche=false;
 }
 //void play(){}
 void pause(){chrono=millis()-chrono;while(Serial2.read()!=62){}
@@ -138,8 +138,8 @@ void fin(){  for(int i=0;i<NBLEDNO;i++){
    blanche.setPixelColor(i,couleurb(0));}
 }
 void miseentampon(){
-  int z =0;
-  Serial.print("miseentampon");
+  if(marche){int z =0;
+ // Serial.print("miseentampon");
    for(int i=0;i<FBLED;i++){
        /* if (i%2==1){
           noire.setPixelColor(i/2+1,couleurn(buffer[i-z+NBLED*compt2]));
@@ -152,7 +152,7 @@ void miseentampon(){
           z++;
         }*/
       }
-      compt2++;
+      compt2++;}
 }
 
 
